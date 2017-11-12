@@ -38,7 +38,7 @@ public class PersonHandler {
 	}
 
 	@PostMapping
-	public Mono<Void> createPerson(Mono<Person> person) {
+	public Mono<Void> createPerson(@RequestBody Mono<Person> person) {
 		return this.repository.savePerson(person);
 	}
 
