@@ -5,8 +5,8 @@ version = '1.0-SNAPSHOT'
 
 description = "Spring webflux sample, including annotations based example."
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+sourceCompatibility = 1.9
+targetCompatibility = 1.9
 
 
 
