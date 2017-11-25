@@ -11,9 +11,9 @@ import java.io.IOException;
 
 public class Server {
 
-    public static final String HOST = "localhost";
+    public static final String HOST = "0.0.0.0";
 
-    public static final int PORT = 8080;
+    public static final int PORT = 80;
 
     public static void main(String[] args) throws InterruptedException, IOException {
         AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext();
@@ -23,6 +23,7 @@ public class Server {
         Server server = new Server();
         server.start(applicationContext);
 
+        System.out.println("Using java version: " + System.getProperty("java.version"));
         System.out.println("Press ENTER to exit.");
         System.in.read();
     }
