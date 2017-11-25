@@ -50,7 +50,7 @@ task copyArtifact(dependsOn: build, type: Copy) {
     into "output/"
     from "build/libs"
 }
-
+ 
 // import task classes
 import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
 
