@@ -1,15 +1,3 @@
-apply plugin: 'java'
-apply plugin: 'com.bmuschko.docker-remote-api'
-
-group = 'org.springframework.samples'
-version = '1.0-SNAPSHOT'
-
-description = "Spring webflux sample, including annotations based example."
-
-sourceCompatibility = 1.9
-targetCompatibility = 1.9
-
-
 
 buildscript {
     repositories {
@@ -20,58 +8,47 @@ buildscript {
     }
 }
 
-repositories {
-        
-     maven { url "https://repo.spring.io/libs-release" }
-     maven { url "http://repo.maven.apache.org/maven2" }
-}
+description = "Spring webflux sample, including annotations based example."
 
-dependencies {
-    compile group: 'org.reactivestreams', name: 'reactive-streams', version:'1.0.1'
+subprojects {
+    apply plugin: 'java'
 
-    compile group: 'io.projectreactor', name: 'reactor-core', version:'3.1.0.RELEASE'
-    compile group: 'io.projectreactor.ipc', name: 'reactor-netty', version:'0.7.0.RELEASE'
+    apply plugin: 'com.bmuschko.docker-remote-api'
 
-    compile group: 'org.apache.tomcat.embed', name: 'tomcat-embed-core', version:'8.5.4'
+    sourceCompatibility = 1.9
+    targetCompatibility = 1.9
 
-    compile group: 'org.springframework', name: 'spring-context', version:'5.0.0.RELEASE'
-    compile group: 'org.springframework', name: 'spring-webflux', version:'5.0.0.RELEASE'
 
-    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version:'2.9.1'
-    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version:'2.9.1'
+    repositories {
+        maven { url "http://repo.maven.apache.org/maven2" }
+    }
 
-    testCompile group: 'junit', name: 'junit', version:'4.12'
-    testCompile group: 'org.springframework', name: 'spring-test', version:'5.0.0.RELEASE'
-}
+    task copyCompileLibs(type: Copy) {
+        into "output/libs"
+        from configurations.compile
+    }
 
-task copyCompileLibs(type: Copy) {
-    into "output/libs"
-    from configurations.compile
-}
+    task copyArtifact(dependsOn: build, type: Copy) {
+        into "output/"
+        from "build/libs"
+    }
 
-task copyArtifact(dependsOn: build, type: Copy) {
-    into "output/"
-    from "build/libs"
-}
- 
-// import task classes
-import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
+    task buildDockerImage(type: com.bmuschko.gradle.docker.tasks.image.DockerBuildImage) {
+        dependsOn copyArtifact, copyCompileLibs
+        if (System.env.DOCKER_HOST) {
+            url = "$System.env.DOCKER_HOST".replace("tcp", "https")
+            if (System.env.DOCKER_CERT_PATH) {
+                certPath = new File(System.env.DOCKER_CERT_PATH)
 
-task buildDockerImage(type: DockerBuildImage) {
-    dependsOn   copyArtifact, copyCompileLibs
-    if (System.env.DOCKER_HOST) {
-        url = "$System.env.DOCKER_HOST".replace("tcp","https")
-        if (System.env.DOCKER_CERT_PATH) {
-            certPath = new File(System.env.DOCKER_CERT_PATH)
-
+            }
+        } else {
+            url = 'unix:///var/run/docker.sock'
         }
+        inputDir = file('.')
+        dockerFile = file('src/main/docker/Dockerfile')
+        tag = project.name
     }
-    else {
-        url = 'unix:///var/run/docker.sock'
-    }
-    inputDir = file('.')
-    dockerFile=file('src/main/docker/Dockerfile')
-    tag = project.name
+
 }
 
 //

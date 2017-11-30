@@ -30,11 +30,21 @@ public class Server {
 
     public void start(ApplicationContext applicationContext) throws InterruptedException {
 
-        HttpServer server = HttpServer.create(HOST, PORT);
+        HttpHandler httpHandler = getHttpHandler(applicationContext);
 
-        HttpHandler httpHandler = WebHttpHandlerBuilder.applicationContext(applicationContext).build();
+        ReactorHttpHandlerAdapter adapter = getReactorAdapter(httpHandler);
 
-        server.newHandler(getReactorAdapter(httpHandler)).block();
+        HttpServer server = getReactorServer();
+
+        server.newHandler(adapter).block();
+    }
+
+    private HttpHandler getHttpHandler(ApplicationContext applicationContext) {
+        return WebHttpHandlerBuilder.applicationContext(applicationContext).build();
+    }
+
+    private HttpServer getReactorServer() {
+        return HttpServer.create(HOST, PORT);
     }
 
     private ReactorHttpHandlerAdapter getReactorAdapter(HttpHandler httpHandler) {

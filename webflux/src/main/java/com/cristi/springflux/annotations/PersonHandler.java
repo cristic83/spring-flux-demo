@@ -22,8 +22,14 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+/**
+ * Handles the following requests:
+ * GET /person
+ * GET /person/{id}
+ * POST /person
+ */
 @RestController
-@RequestMapping("/person")
+@RequestMapping(value = "/person", consumes = {"application/json"}, produces = {"application/json"})
 public class PersonHandler {
 
 	private final PersonRepository repository;
@@ -32,7 +38,7 @@ public class PersonHandler {
 		this.repository = repository;
 	}
 
-	@GetMapping(value = "/{id}", consumes = {"application/json"}, produces = {"application/json"})
+	@GetMapping(value = "/{id}")
 	public Mono<Person> getPerson(@PathVariable("id") int personId) {
 		return this.repository.getPerson(personId);
 	}
@@ -42,7 +48,7 @@ public class PersonHandler {
 		return this.repository.savePerson(person);
 	}
 
-	@GetMapping(produces = {"application/json"})
+	@GetMapping
 	public Flux<Person> listPeople() {
 		return this.repository.allPeople();
 	}

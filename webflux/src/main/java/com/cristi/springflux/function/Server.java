@@ -21,6 +21,7 @@ import org.apache.catalina.Context;
 import org.apache.catalina.LifecycleException;
 import org.apache.catalina.startup.Tomcat;
 import com.cristi.springflux.domain.PersonRepository;
+import org.springframework.web.reactive.function.server.RouterFunctions;
 import reactor.ipc.netty.http.server.HttpServer;
 
 import org.springframework.http.HttpMethod;
@@ -48,28 +49,28 @@ public class Server {
 
 	public static void main(String[] args) throws Exception {
 		Server server = new Server();
-		server.startReactorServer();
+		RouterFunction<ServerResponse> router = routingFunction();
+
+		server.start(router);
 //		server.startTomcatServer();
 
 		System.out.println("Press ENTER to exit.");
 		System.in.read();
 	}
 
-	public RouterFunction<ServerResponse> routingFunction() {
+	public static RouterFunction<ServerResponse> routingFunction() {
 		PersonRepository repository = new DummyPersonRepository();
 		PersonHandler handler = new PersonHandler(repository);
 
 		return nest(path("/person"),
 				nest(accept(APPLICATION_JSON),
 						route(GET("/{id}"), handler::getPerson)
-						.andRoute(method(HttpMethod.GET), handler::listPeople)
-						.andRoute(POST("/"), handler::createPerson)
+                                .andRoute(method(HttpMethod.GET), handler::listPeople)
+								.andRoute(POST("/"), handler::createPerson)
 				));
 	}
 
-	public void startReactorServer() throws InterruptedException {
-
-		RouterFunction<ServerResponse> router = routingFunction();
+	public void start(RouterFunction<ServerResponse> router) throws InterruptedException {
 
 		HttpHandler httpHandler = getHttpHandler(router);
 
@@ -80,12 +81,20 @@ public class Server {
 		server.newHandler(adapter).block();
 	}
 
+	private ReactorHttpHandlerAdapter getReactorAdapter(HttpHandler httpHandler) {
+		return new ReactorHttpHandlerAdapter(httpHandler);
+	}
+
 	private HttpServer getReactorServer() {
 		return HttpServer.create(HOST, PORT);
 	}
 
-	private ReactorHttpHandlerAdapter getReactorAdapter(HttpHandler httpHandler) {
-		return new ReactorHttpHandlerAdapter(httpHandler);
+	private HttpHandler getHttpHandler(RouterFunction<ServerResponse> router) {
+		return RouterFunctions.toHttpHandler(router);
+	}
+
+	private ServletHttpHandlerAdapter getTomcatAdapter(HttpHandler httpHandler) {
+		return new ServletHttpHandlerAdapter(httpHandler);
 	}
 
 	public void startTomcatServer() throws LifecycleException {
@@ -109,14 +118,6 @@ public class Server {
 		Tomcat.addServlet(rootContext, "httpHandlerServlet", servlet);
 		rootContext.addServletMapping("/", "httpHandlerServlet");
 		return tomcatServer;
-	}
-
-	private ServletHttpHandlerAdapter getTomcatAdapter(HttpHandler httpHandler) {
-		return new ServletHttpHandlerAdapter(httpHandler);
-	}
-
-	private HttpHandler getHttpHandler(RouterFunction<ServerResponse> router) {
-		return toHttpHandler(router);
 	}
 
 }
