@@ -3,4 +3,6 @@ version '1.0-SNAPSHOT'
 
 dependencies {
     compile group: 'io.vertx', name: 'vertx-jdbc-client', version: '3.5.0'
+    compile group: 'io.vertx', name: 'vertx-core', version: '3.5.0'
+    compile group: 'hsqldb', name: 'hsqldb', version: '1.8.0.7'
 }
