@@ -43,9 +43,7 @@ public class MainCallbackHell {
                             .putHeader("content-type", "text/plain")
                             .end(res.toString());
                 }
-
             });
-
 
         }).listen(80, "0.0.0.0");
 
